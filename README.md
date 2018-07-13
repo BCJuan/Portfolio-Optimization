@@ -4,9 +4,12 @@
 
 ## Purpose
 
-The purpose of this project is to have an executable which gives the number of assets to buy from each company.
+The purpose of this project is to have an executable which gives the number of assets to buy from each company in order to build a portfolio.
 
-## Optimization Method
+
+### Backtest
+
+In the folder backtest a study regarding the reproduction of this strategy can be found. 
 
 ## Usage 
 
