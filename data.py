@@ -20,7 +20,7 @@ def get_tickers():
     wiki = "https://en.wikipedia.org/wiki/IBEX_35"
     page = web3.request.urlopen(wiki)
     
-    soup = sopy(page)
+    soup = sopy(page, "lxml")
             
     weight_table = soup.find("table", {"id":"constituents"})
     
@@ -30,7 +30,7 @@ def get_tickers():
     
     for i in raw_titles:
         titles.append(i.findAll(text = True)[0])
-        
+    
     c_name = []
     ticker = []
     sector = []
@@ -38,16 +38,18 @@ def get_tickers():
     for row in weight_table.findAll("tr"):
         cells = row.findAll("td")
         if len(cells) != 0:
-            c_name.append(cells[0].findAll(text=True)[0])
-            ticker.append(cells[1].findAll(text=True)[0])
-            sector.append(cells[2].findAll(text=True)[0])
+            c_name.append(cells[0].findAll(text=True)[0].strip())
+            ticker.append(cells[1].findAll(text=True)[0].strip())
+            sector.append(cells[2].findAll(text=True)[0].strip())
     
     members = pd.DataFrame(c_name, columns = [titles[0]])
     
     members[titles[1]] = ticker
     members[titles[2]] = sector
     
-    members.to_csv("./csv/members.csv")
+    if not os.path.exists("./csv/"):
+        os.mkdir("./csv/")
+    members.to_csv("./csv/members_IBEX35.csv")
     return ticker
 
 def get_data_tickers(ticker, tick_not_down):

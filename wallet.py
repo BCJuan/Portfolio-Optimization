@@ -140,6 +140,6 @@ if __name__ == "__main__":
     
     if args.fee_abs or  args.fee_rel:
         fees = fee_calculator(total,qq,args.fee_abs, args.fee_rel)
-        print("Fees paid", round(fees[2],2))
+        print("Total Fees paid", round(fees[2],2))
         print("Absolute fees", round(fees[0],2))
         print("Relative fees",round(fees[1],2))
