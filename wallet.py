@@ -21,6 +21,13 @@ def arg_parser():
                         help="objective: maxsharpe, minvar, maxret")
     parser.add_argument("--time", type=int, default=10,
                         help="time period of interest for the investment")
+    parser.add_argument("--save", type=bool, default=False, 
+                        help="save the result in the book")
+    parser.add_argument("--fee-abs", type=float, 
+                        help="Absolute fees (1% is 0.01)")
+    parser.add_argument("--fee-rel", type=float,
+                        help="Relatie fee (1% is 0.01)")
+    
     
     return parser.parse_args()
 
@@ -46,26 +53,49 @@ def optimizer(prices, inv_quant,rets, func):
     init /= np.sum(init)
     
     opts =  sco.minimize(func, init, method = "SLSQP", constraints=cons, bounds=bnds,
-                        options={'maxiter':1000}, args=(rets))
+                        options={'maxiter':5000}, args=(rets))
     
     if not opts['success']:
         weights = init
+        print("Optimization procedure failed. Weights and quantities shown are random")
     else:
         weights = opts['x'].round(4)
         
     quants = np.floor(weights*inv_quant/prices)
     
-    return quants
+    return quants, weights
 
-if __name__ == "__main__":
-    args = arg_parser()
+def data_obt(rang):
     
-    #####aqui iria actualizacion o creacion fichero precios
-    
-    frame = pd.read_csv("./csv/data/adj_IBEX35.csv") 
+    frame = pd.read_csv("./csv/data/adj_IBEX35.csv")
+    yesterday = (pd.to_datetime('Today') - pd.Timedelta('1 days')).strftime('%Y-%m-%d')
+    if  not frame.iloc[-1]["Dates"] == yesterday:
+        print("-"*30)
+        print("Data not updated. Please run R file to obtain recent prices")
+        print("LAst day in data: {}".format(frame.iloc[-1]["Dates"]))
+        print("Last day should be {}".format(yesterday))
+        print("-"*30,"\n")
+        
     frame.set_index("Dates", inplace=True)
     rets = np.log(frame/frame.shift(1))
     prices = frame.iloc[-1]
+    old_prices = frame.iloc[-rang]
+    
+    return rets, prices, old_prices
+
+def mirror_gains(price, ol_price, quants):
+    return np.sum(quants*(price-ol_price))
+
+def fee_calculator( money, quantities, absolute=0.0, relative=0.0):
+    num = len(quantities)
+    result_absolute = absolute*num
+    result_relative = relative*money
+    total = result_absolute +   result_relative
+    return result_absolute,result_relative, total
+
+if __name__ == "__main__":
+    
+    args = arg_parser()
     
     if args.obj == "maxsharpe":
         f = max_sharpe
@@ -74,13 +104,42 @@ if __name__ == "__main__":
     else:
         f = max_ret
         
+    rets, prices, ol_prices = data_obt(args.time)
+    
     rets_use = rets[-args.time:]
     
-    quantities = optimizer(prices, args.quant, rets_use, f)
+    quantities, weights = optimizer(prices, args.quant, rets_use, f)
+    
     qq = quantities[quantities != 0.]
     total = np.dot(prices, quantities)
     liquid = args.quant - total
-    print(qq)
-    print("Amount invested", total)
-    print("Rest", liquid)
     
+    print("Number of assets for each equity")
+    print("-"*30)
+    print("-"*30)
+    print(qq.astype(int).to_string(),"\n\n")
+    print("Optimized at buying prices:")
+    print("-"*30)
+    print("-"*30)
+    print(round(prices[quantities != 0.],2).to_string(),"\n\n")
+    print("Info:")
+    print("-"*30)
+    print("-"*30)
+    print("Investment quantity", args.quant)
+    print("Amount invested", round(total,2))
+    print("Rest", round(liquid,2))
+    print("-"*5)
+    info = statistics(weights, rets_use)
+    mirrored_gains = mirror_gains(prices, ol_prices, quantities)
+    print("Expected return", round(info[0],4))
+    print("Expected volatility", round(info[1],4))
+    print("Expected Sharpe", round(info[2],4))
+    print("Mirrored gains", round(mirrored_gains,2))
+    print("Mirrored returns",round(np.sum(np.log(prices/ol_prices)*weights),4))
+    print("-"*5)
+    
+    if args.fee_abs or  args.fee_rel:
+        fees = fee_calculator(total,qq,args.fee_abs, args.fee_rel)
+        print("Fees paid", round(fees[2],2))
+        print("Absolute fees", round(fees[0],2))
+        print("Relative fees",round(fees[1],2))
