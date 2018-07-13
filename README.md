@@ -77,6 +77,9 @@ Absolute fees 8.0
 Relative fees 11.64
 
 ```
+
+If the data were not updated a warning would appear at the beginning of the output.
+
 #### Options
 
 The mandatory parameters to include in the execution are:
