@@ -98,10 +98,12 @@ As optional parameters
 
 * Absolute fees: fixed quantity per transaction
 * Relative fee: variable quantity as a percentage of the total amount invested
+* Save: saves the optimized portfolio quantites of each asset and the prices at which theoretically bought in a csv fro further performance studies.
 
 ## TODO:
 
-- [ ] Add option to carry accountability of assets buyed and price
+- [x] Add option to carry accountability of assets buyed and price
 - [ ] Add more markets: CAC 40, EUROSTOXX 50, S&P500
   - [ ] Possibility to mix them or not
+- [ ] Develop GUI for easeness of use.
 - [ ] Expand data sourcing to python datareader with Tiingo and Quandl
