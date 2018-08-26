@@ -14,7 +14,7 @@ if (file.exists("./csv/data/adj_IBEX35.csv")){
   
   tod <- wday(as_date(now()),week_start = getOption("lubridate.week.start", 1))
   last_day <- wday(adj_frame$Dates[length(adj_frame$Dates)],week_start = getOption("lubridate.week.start", 1))
-  if (last_day==5 && tod >5){print("Already up to date")
+  if (last_day==5 && tod >5 && (last_day == tod-days(1) || last_day == tod-days(2) ) ){print("Already up to date")
     } else {
     if (last_day==5 && tod ==2){
       use_date <-  adj_frame$Dates[length(adj_frame$Dates)] + days(3)
@@ -22,6 +22,7 @@ if (file.exists("./csv/data/adj_IBEX35.csv")){
         use_date <-  adj_frame$Dates[length(adj_frame$Dates)] + days(1)
         }
       
+    print(use_date)
     getSymbols(members$`Ticker symbol`, from=use_date)
     
     frame_to_add <- do.call(merge, lapply(members$`Ticker symbol`, function(x) Ad(get(x))))

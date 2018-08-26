@@ -28,6 +28,8 @@ def arg_parser():
                         help="Absolute fees (1% is 0.01)")
     parser.add_argument("--fee-rel", type=float,
                         help="Relative fee (1% is 0.01)")
+    parser.add_argument("--at-day", type=str, default=None,
+                        help = "Specific day to consider applications")
 
     return parser.parse_args()
 
@@ -52,8 +54,7 @@ def optimizer(prices, inv_quant,rets, func):
     init = np.random.random(len(prices))
     init /= np.sum(init)
 
-    opts =  minimize(func, init, method = "SLSQP", constraints=cons, bounds=bnds,
-                        options={'maxiter':5000}, args=(rets))
+    opts =  minimize(func, init, method = "SLSQP", constraints=cons, bounds=bnds, args=(rets))
 
     if not opts['success']:
         weights = init
@@ -65,7 +66,7 @@ def optimizer(prices, inv_quant,rets, func):
 
     return quants, weights
 
-def data_obt(rang):
+def data_obt(rang, date = None):
 
     if not exists("./csv/data/adj_IBEX35.csv"):
         print("Please download the data before executing the program")
@@ -84,12 +85,22 @@ def data_obt(rang):
         print("Last day should be {}".format(yesterday))
         print("-"*30,"\n")
 
-    frame.set_index("Dates", inplace=True)
-    rets = np.log(frame/frame.shift(1))
-    prices = frame.iloc[-1]
-    old_prices = frame.iloc[-rang]
 
-    return rets, prices, old_prices
+    if date == None:
+        frame.set_index("Dates", inplace=True)
+        rets = np.log(frame/frame.shift(1))
+        prices = frame.iloc[-1]
+        old_prices = frame.iloc[-rang]
+        rets_use = rets[-rang:]
+    else:
+        idx = frame.loc[frame['Dates'] == date].index.tolist()[0]
+        frame.set_index("Dates", inplace=True)
+        rets = np.log(frame/frame.shift(1))
+        prices = frame.iloc[idx]
+        old_prices = frame.iloc[idx-rang]
+        rets_use = rets[(idx-rang):(idx+1)]
+
+    return rets, rets_use, prices, old_prices
 
 def mirror_gains(price, ol_price, quants):
     return np.sum(quants*(price-ol_price))
@@ -115,9 +126,11 @@ def saving(quantos, pricos,fees):
                 n_name = str(name[0] +"Price")
             n_cols.append(n_name)
 
+        idx_values = tabular.index.values
         tabular.columns = n_cols
         tabular = tabular.reset_index(drop=True)
         tabular = concat([tabular,fees],axis=1)
+        tabular.index = idx_values
         tabular.to_csv("./accountability.csv")
     else:
         tab  = read_csv("./accountability.csv", index_col = 0)
@@ -142,8 +155,10 @@ def saving(quantos, pricos,fees):
             print("The day was already included in the account. Please remove it manually to rewrite")
             pass
         else:
+            idx_values = tabular.index.values
             tabular = tabular.reset_index(drop=True)
             tabular = concat([tabular,fees],axis=1)
+            tabular.index = idx_values
             f_tabular = concat([tab,tabular])
             f_tabular.to_csv("./accountability.csv")
 
@@ -164,9 +179,10 @@ if __name__ == "__main__":
     else:
         f = max_ret
 
-    rets, prices, ol_prices = data_obt(args.time)
-
-    rets_use = rets[-args.time:]
+    if args.at_day == None:
+        rets,rets_use, prices, ol_prices = data_obt(args.time)
+    else:
+        rets,rets_use, prices, ol_prices = data_obt(args.time, str(args.at_day))
 
     quantities, weights = optimizer(prices, args.quant, rets_use, f)
 
