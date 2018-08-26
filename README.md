@@ -107,7 +107,9 @@ As optional parameters
 
 - [x] Add option to carry accountability of assets buyed and price
   - [x] Add option to compute gains in selected period.
-  - [x] Correct computation of fees having into account last portfolio configuration. 
+  - [x] Correct computation of fees having into account last portfolio configuration.
+- [ ] Scrap cmponents from a more reliable web pege.
+- [ ] Make the data file more robust to member changes.
 - [ ] Add more markets: CAC 40, EUROSTOXX 50, S&P500
   - [ ] Possibility to mix them or not
 - [ ] Develop GUI for easeness of use.
