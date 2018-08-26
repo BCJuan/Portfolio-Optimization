@@ -103,13 +103,22 @@ As optional parameters
 * Save: saves the optimized portfolio quantites of each asset and the prices at which theoretically bought in a csv fro further performance studies.
 * At day: day at which calculate the portfolio (to reobtain past results).
 
+#### Cases
+
+In case a new member appears in the IBEX:
+
+* Run `data_new.py`
+* Delete `./csv/data/`
+* Run from scratch `data.R`
+
 ## TODO:
 
 - [x] Add option to carry accountability of assets buyed and price
   - [x] Add option to compute gains in selected period.
   - [x] Correct computation of fees having into account last portfolio configuration.
-- [ ] Scrap cmponents from a more reliable web pege.
-- [ ] Make the data file more robust to member changes.
+- [x] Scrap cmponents from a more reliable web pege.
+- [x] Make the data file more robust to member changes.
+- [ ] Add recreator of accuntability in case members change
 - [ ] Add more markets: CAC 40, EUROSTOXX 50, S&P500
   - [ ] Possibility to mix them or not
 - [ ] Develop GUI for easeness of use.
