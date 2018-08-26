@@ -9,7 +9,7 @@ Created on Wed Jul 11 12:23:07 2018
 from argparse import ArgumentParser
 import numpy as np
 from scipy.optimize import minimize
-from pandas import to_datetime, Timedelta, read_csv, concat, DataFrame
+from pandas import to_datetime, Timedelta, read_csv, concat, DataFrame,  to_numeric
 from os.path import exists
 
 OBJECTIVE="maxsharpe"
@@ -74,6 +74,10 @@ def data_obt(rang, date = None):
         raise AssertionError()
     else:
         frame = read_csv("./csv/data/adj_IBEX35.csv")
+        
+        
+
+
 
     yesterday = (to_datetime('Today') - Timedelta('1 days')).strftime('%Y-%m-%d')
     yesterday_use = to_datetime('Today') - Timedelta('1 days')
@@ -89,6 +93,11 @@ def data_obt(rang, date = None):
 
     if date == None:
         frame.set_index("Dates", inplace=True)
+        frame.fillna(method='pad', inplace=True, axis=0)
+        frame.fillna(method='bfill', inplace=True, axis=0)
+        frame = frame.apply(to_numeric)
+
+        
         rets = np.log(frame/frame.shift(1))
         prices = frame.iloc[-1]
         old_prices = frame.iloc[-rang]
@@ -96,10 +105,14 @@ def data_obt(rang, date = None):
     else:
         idx = frame.loc[frame['Dates'] == date].index.tolist()[0]
         frame.set_index("Dates", inplace=True)
+        frame.fillna(method='pad', inplace=True, axis=0)
+        frame.fillna(method='bfill', inplace=True, axis=0)
+        frame = frame.apply(to_numeric)
         rets = np.log(frame/frame.shift(1))
         prices = frame.iloc[idx]
         old_prices = frame.iloc[idx-rang]
         rets_use = rets[(idx-rang):(idx+1)]
+        
 
     return rets, rets_use, prices, old_prices
 
@@ -178,15 +191,19 @@ def get_last_day_qq_n_money(n_quants, prices, is_there_day = None):
       
     if is_there_day == None:
         idx=0
+        old_quants = frame.iloc[idx-1][1:(cols+1)].values
     else:
-        idx = list(np.where(frame[frame.columns[0]==is_there_day])[0])
-        
-    old_quants = frame.iloc[idx-1][1:(cols+1)].values
+        try:
+            idx = list(np.where(frame[frame.columns[0]==is_there_day])[0])
+            old_quants = frame.iloc[idx-1][1:(cols+1)].values
+        except KeyError:
+            idx = -1
+            old_quants = frame.iloc[idx][1:(cols+1)].values
+    
     quant_vector = np.abs(n_quants-old_quants)
-    
-    money = np.dot(quant_vector, prices)
-    
-    return quant_vector, money
+    money = np.sum(np.dot(quant_vector,prices))
+
+    return  money, quant_vector
     
 
 if __name__ == "__main__":
@@ -242,9 +259,12 @@ if __name__ == "__main__":
     if args.fee_abs or args.fee_rel:
         if exists("./accountability.csv"):
             money_used, quantities_used = get_last_day_qq_n_money(quantities,prices, is_there_day=args.at_day)
-            fees = fee_calculator(total,qq,args.fee_abs, args.fee_rel)
+           
+            fees = fee_calculator(money_used,quantities_used,args.fee_abs, args.fee_rel)
         else:
             fees = fee_calculator(total,qq,args.fee_abs, args.fee_rel)
+            
+
         print("Total Fees paid", round(fees[2],2))
         print("Absolute fees", round(fees[0],2))
         print("Relative fees",round(fees[1],2))

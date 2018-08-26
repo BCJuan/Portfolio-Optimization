@@ -50,7 +50,7 @@ if (file.exists("./csv/data/adj_IBEX35.csv")){
 
   Adj_tibble <- Adj_tibble %>%
     mutate(Dates = dates) %>%
-    select(Dates, ABE.MC.Adjusted:VIS.MC.Adjusted)
+    select(Dates, ABE.MC.Adjusted:CIE.MC.Adjusted)
 
   if (!file.exists("./csv/data")){
     dir.create("./csv/data/")

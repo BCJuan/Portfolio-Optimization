@@ -23,7 +23,7 @@ def getArgs():
 
 def get_obtained(frame, members, init=None, end=None):
 
-    cols = len(members['Company'])
+    cols = len(members['Ticker symbol'])
 
     if init==None and end==None:
         
@@ -41,7 +41,7 @@ def get_obtained(frame, members, init=None, end=None):
         obtained = new_value-old_value -fees
         
     elif init==None:
-        idx = list(where(frame[frame.columns[0]==end])[0])
+        idx = list(where(frame[frame.columns[0]]==end))[0][0]
         
         accumulated = 0
         for i in range(1,idx+1):
@@ -64,10 +64,10 @@ def get_obtained(frame, members, init=None, end=None):
         obtained = accumulated
             
     elif end==None:
-        idx= list(where(frame[frame.columns==init])[0])
+        idx= list(where(frame[frame.columns[0]]==init))[0][0]
         
         accumulated = 0
-        for i in range(idx,len(frame)):
+        for i in range(idx+1,len(frame)):
             
             old_quants = frame.iloc[i-1][1:(cols+1)].values
     
@@ -87,11 +87,11 @@ def get_obtained(frame, members, init=None, end=None):
         obtained = accumulated
 
     else:
-        idx_init= list(where(frame[frame.columns==init])[0])
-        idx_end= list(where(frame[frame.columns==end])[0])
+        idx_init = list(where(frame[frame.columns[0]]==init))[0][0]
+        idx_end = list(where(frame[frame.columns[0]]==end))[0][0]
         
         accumulated = 0
-        for i in range(idx_init,idx_end+1):
+        for i in range(idx_init+1,idx_end+1):
             
             old_quants = frame.iloc[i-1][1:(cols+1)].values
     
