@@ -111,6 +111,11 @@ In case a new member appears in the IBEX:
 * Delete `./csv/data/`
 * Run from scratch `data.R`
 
+If you want to see the gains in a period, execute: `python gains.py`, and the options are:
+
+* `--init` The initial date of the period (like this `init=2018-07-13`)
+* `--end` End date of the period
+
 ## TODO:
 
 - [x] Add option to carry accountability of assets buyed and price
