@@ -22,6 +22,8 @@ python data.py
 ```
 It will scrap from wikipedia the components of IBEX35 to get their tickers.
 
+**BEWARE: some tickers may change from time to time. This may lead to lack of data and maybe errors in the computation.
+
 After that just run the file `data.R` as
 
 ```
@@ -38,7 +40,7 @@ getSymbols(members$`Ticker symbol`, from="2016-01-01")
 The program can be run as
 
 ```
-python wallet.py --time=10 --quant=3000 --obj=maxsharpe --fee-abs=2 --fee-rel=0.004
+python main.py --time=10 --quant=3000 --obj=maxsharpe --fee-abs=2 --fee-rel=0.004
 ```
 
 and the output is something like:
@@ -99,10 +101,13 @@ As optional parameters
 * Absolute fees: fixed quantity per transaction
 * Relative fee: variable quantity as a percentage of the total amount invested
 * Save: saves the optimized portfolio quantites of each asset and the prices at which theoretically bought in a csv fro further performance studies.
+* At day: day at which calculate the portfolio (to reobtain past results).
 
 ## TODO:
 
 - [x] Add option to carry accountability of assets buyed and price
+  - [x] Add option to compute gains in selected period.
+  - [x] Correct computation of fees having into account last portfolio configuration. 
 - [ ] Add more markets: CAC 40, EUROSTOXX 50, S&P500
   - [ ] Possibility to mix them or not
 - [ ] Develop GUI for easeness of use.
